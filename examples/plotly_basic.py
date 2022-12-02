@@ -12,6 +12,9 @@
 #
 # Setup:
 # FILE requirements.txt EOF
+# numpy
+# pandas
+# scipy
 # plotly
 # Flask>=2
 # simple-websocket>=0.5
@@ -24,7 +27,6 @@
 # START python -m flask run
 # ===
 import simple_websocket
-import plotly.express as px
 from flask import Flask, request, send_from_directory
 
 # ----- Nitro app -----
@@ -33,12 +35,21 @@ from h2o_nitro import View, box
 from h2o_nitro_web import web_directory
 from h2o_nitro_plotly import plotly_plugin, plotly_box
 
+import numpy as np
+import pandas as pd
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
+import plotly.express as px
+
 
 # Entry point
 def main(view: View):
     # Show plots one by one.
-    # view(plotly_box(make_plotly_scatterplot(), style='h-96'))
-    view(plotly_box(make_plotly_scatterplot()) / 'h-96')
+    view(plotly_box(make_plotly_scatterplot()))
+    view(plotly_box(make_plotly_distplot()))
+    view(plotly_box(make_plotly_boxplot()))
+    view(plotly_box(make_plotly_hist2d()))
+    view(plotly_box(make_plotly_path()))
 
 
 # Nitro instance
@@ -52,14 +63,49 @@ nitro = View(
 
 # ----- Plotly plotting routines -----
 
+# Source: https://plotly.com/python/line-and-scatter/
 def make_plotly_scatterplot():
-    df = px.data.iris()  # replace with your own data source
+    df = px.data.iris()
     return px.scatter(
         df,
         x="sepal_width",
         y="sepal_length",
         color="species",
     )
+
+
+# Source: https://plotly.com/python/distplot/
+def make_plotly_distplot():
+    df = pd.DataFrame({
+        '2012': np.random.randn(200),
+        '2013': np.random.randn(200) + 1,
+    })
+    return ff.create_distplot([df[c] for c in df.columns], df.columns, bin_size=.25)
+
+
+# https://plotly.com/python/box-plots/
+def make_plotly_boxplot():
+    df = px.data.tips()
+    return px.box(df, x="time", y="total_bill", points="all")
+
+
+# Source: https://plotly.com/python/2D-Histogram/
+def make_plotly_hist2d():
+    np.random.seed(1)
+    x = np.random.randn(500)
+    y = np.random.randn(500) + 1
+    return go.Figure(go.Histogram2d(
+        x=x,
+        y=y
+    ))
+
+
+# Source: https://plotly.com/python/line-and-scatter/
+def make_plotly_path():
+    df = px.data.gapminder().query("country in ['Canada', 'Botswana']")
+    fig = px.line(df, x="lifeExp", y="gdpPercap", color="country", text="year")
+    fig.update_traces(textposition="bottom right")
+    return fig
 
 
 # ----- Flask boilerplate -----

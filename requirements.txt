@@ -1,0 +1,7 @@
+setuptools
+wheel
+twine
+plotly
+h2o-nitro[web]
+flake8==4.0.1
+pytest==7.0.1

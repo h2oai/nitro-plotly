@@ -12,7 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .version import __version__
 from .plugin import plotly_plugin, plotly_box
-
-__version__ = "0.1.0"
-
